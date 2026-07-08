@@ -2,13 +2,30 @@
 
 import React, { useState } from 'react';
 import { Task, TaskStatus } from '@/types/kanban';
-import { INITIAL_TASKS } from '@/constants/mockTasks'; // 👈 ¡Invocamos los datos desde aquí!
+import { INITIAL_TASKS } from '@/constants/mockTasks';
 import SprintMetrics from '@/components/SprintMetrics';
 import KanbanColumn from '@/components/KanbanColumn';
+import NewTaskForm from '@/components/NewTaskForm'; // 👈 ¡Importamos el nuevo componente!
 
 export default function KanbanPage() {
-  // Inicializamos el estado directamente con la constante importada
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+
+  // 1. Función para insertar la nueva tarea creada por el usuario
+  const handleAddTask = (taskData: Omit<Task, 'id'>) => {
+    // Generamos un ID secuencial autoincremental sumándole 1 al ID más alto que exista
+    const nextId = tasks.length > 0 
+      ? String(Math.max(...tasks.map(t => Number(t.id))) + 1) 
+      : '101';
+
+    // Construimos el objeto completo de la nueva tarea
+    const newTask: Task = {
+      id: nextId,
+      ...taskData, // Copiamos el title, description, priority, points y status del formulario
+    };
+
+    // Actualizamos el estado insertando la nueva tarea (Inmutabilidad con el operador Spread)
+    setTasks([...tasks, newTask]);
+  };
 
   const handleMoveTask = (taskId: string, newStatus: TaskStatus) => {
     const updatedTasks = tasks.map((task) => {
@@ -17,7 +34,6 @@ export default function KanbanPage() {
       }
       return task;
     });
-
     setTasks(updatedTasks);
   };
 
@@ -33,11 +49,14 @@ export default function KanbanPage() {
               </svg>
             </div>
             <h1 className="text-3xl font-black text-white tracking-tight">
-              Scrum Sprint Board <span className="text-sm font-mono text-slate-500 font-normal">v1.1.0</span>
+              Scrum Sprint Board <span className="text-sm font-mono text-slate-500 font-normal">v1.2.0</span>
             </h1>
           </div>
-          <p className="text-slate-400 text-sm">Sandbox técnico independiente con desacoplamiento de datos estáticos en constantes.</p>
+          <p className="text-slate-400 text-sm">Sandbox técnico interactivo con inyección dinámica de estado controlado.</p>
         </header>
+
+        {/* RENDERIZAMOS EL FORMULARIO PASÁNDOLE NUESTRA FUNCIÓN MANEJADORA */}
+        <NewTaskForm onAddTask={handleAddTask} />
 
         <SprintMetrics tasks={tasks} />
 
